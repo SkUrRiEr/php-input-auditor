@@ -2,8 +2,8 @@
 <?php
 
 require("PhpParser/bootstrap.php");
-require("lib/IncludeCollector.php");
 require("lib/ConstantResolver.php");
+require("lib/IncludeCollector.php");
 
 ini_set("xdebug.max_nesting_level", 3000);
 
@@ -36,11 +36,11 @@ $parser = new PhpParser\Parser($lexer);
 $traverser = new PhpParser\NodeTraverser();
 $traverser->addVisitor(new PhpParser\NodeVisitor\NameResolver);
 
-$include_collector = new PhpInputAudit\IncludeCollector();
-$traverser->addVisitor($include_collector);
-
 $constant_resolver = new PhpInputAudit\ConstantResolver();
 $traverser->addVisitor($constant_resolver);
+
+$include_collector = new PhpInputAudit\IncludeCollector();
+$traverser->addVisitor($include_collector);
 
 $constant_traverser = new PhpParser\NodeTraverser();
 $constant_traverser->addVisitor($constant_resolver);
