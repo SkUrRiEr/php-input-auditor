@@ -1,0 +1,8 @@
+ PHP Input Auditor
+===================
+
+Marks every usage of any variable or parameter as either being "safe" or "unsafe" and after exhaustively searching through a codebase and all accessible libraries used.
+
+All method or function calls that have "unsafe" parameters are reported unless they're on the whitelist.
+
+$_GET, $_REQUEST and $_POST are initially marked as "unsafe", this marking is then propagated to all parameters and variables that use items from them.
