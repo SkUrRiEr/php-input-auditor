@@ -4,6 +4,14 @@ namespace PhpInputAudit;
 
 use PhpParser\Node;
 use PhpParser\NodeVisitorAbstract;
+use Exception;
+
+/* IncludeCollector
+ *
+ * Collects filenames of all includes in the file.
+ *
+ * Can deal with string concatenation in the arguments.
+ */
 
 class IncludeCollector extends NodeVisitorAbstract
 {
@@ -32,16 +40,32 @@ class IncludeCollector extends NodeVisitorAbstract
             return;
         }
 
-        if ($node->expr instanceof Node\Scalar\String_) {
-            $this->processInclude($node->expr->value);
+        try {
+            $this->processInclude($this->evaluateArg($node->expr));
+        } catch (Exception $e) {
+            error_log(" => Cannot resolve include starting on line #".
+                $node->getAttribute("startLine")." => Failing for now.");
 
-            return;
+            // TODO: resolve name from expression, variable or whatever. How? Not sure. Let's leave it for now.
+        }
+    }
+
+    private function evaluateArg($expr)
+    {
+        if ($expr instanceof Node\Scalar\String_) {
+            return $expr->value;
         }
 
-        error_log(" => Cannot resolve non-string include starting on line #".
-            $node->getAttribute("startLine")." => Failing for now.");
+        if ($expr instanceof Node\Expr\BinaryOp\Concat) {
+            return $this->evaluateConcat($expr);
+        }
 
-        // TODO: resolve name from expression, variable or whatever. How? Not sure. Let's leave it for now.
+        throw new Exception("Not sure how to deal with ".get_class($expr));
+    }
+
+    private function evaluateConcat($expr)
+    {
+        return $this->evaluateArg($expr->left).$this->evaluateArg($expr->right);
     }
 
     private function processInclude($file)
