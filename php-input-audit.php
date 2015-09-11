@@ -84,7 +84,7 @@ while (count($stmt_set) < count($files) ||
         }
 
         foreach ($include_collector->getFoundIncludes() as $f) {
-            if (!array_search($f, $files)) {
+            if (array_search($f, $files) === false) {
                 $files[] = $f;
             }
         }
