@@ -3,6 +3,7 @@
 
 require("PhpParser/bootstrap.php");
 require("lib/IncludeCollector.php");
+require("lib/ConstantResolver.php");
 
 ini_set("xdebug.max_nesting_level", 3000);
 
@@ -38,38 +39,54 @@ $traverser->addVisitor(new PhpParser\NodeVisitor\NameResolver);
 $include_collector = new PhpInputAudit\IncludeCollector();
 $traverser->addVisitor($include_collector);
 
-for ($i = 0; $i < count($files); $i++) {
-    $file = $files[$i];
+$constant_resolver = new PhpInputAudit\ConstantResolver();
+$traverser->addVisitor($constant_resolver);
 
-    $include_collector->newFile($file);
+$constant_traverser = new PhpParser\NodeTraverser();
+$constant_traverser->addVisitor($constant_resolver);
+$constant_traverser->addVisitor($include_collector);
 
-    $code = file_get_contents($file);
-    echo "====> File $file:\n";
+$stmt_set = array();
 
-    try {
-        $stmts = $parser->parse($code);
-    } catch (PhpParser\Error $e) {
-        if ($attributes["with-column-info"] && $e->hasColumnInfo()) {
-            $startLine = $e->getStartLine();
-            $endLine = $e->getEndLine();
-            $startColumn = $e->getStartColumn($code);
-            $endColumn   = $e->getEndColumn($code);
-            $message .= $e->getRawMessage()." from ".$startLine.":".$startColumn." to ".$endLine.":".$endColumn;
+while (count($stmt_set) == 0 ||
+    ($constant_resolver->hasResolvedConstant() && $constant_resolver->foundMissingConstant())) {
+    $constant_resolver->clearFlags();
+
+    for ($i = 0; $i < count($files); $i++) {
+        $file = $files[$i];
+
+        echo "====> File $file:\n";
+
+        $include_collector->newFile($file);
+
+        if (!isset($stmt_set[$file])) {
+            $code = file_get_contents($file);
+
+            try {
+                $stmts = $parser->parse($code);
+            } catch (PhpParser\Error $e) {
+                if ($attributes["with-column-info"] && $e->hasColumnInfo()) {
+                    $startLine = $e->getStartLine();
+                    $endLine = $e->getEndLine();
+                    $startColumn = $e->getStartColumn($code);
+                    $endColumn   = $e->getEndColumn($code);
+                    $message .= $e->getRawMessage()." from ".$startLine.":".$startColumn." to ".$endLine.":".$endColumn;
+                } else {
+                    $message = $e->getMessage();
+                }
+
+                die($message."\n");
+            }
+
+            $stmt_set[$file] = $traverser->traverse($stmts);
         } else {
-            $message = $e->getMessage();
+            $stmt_set[$file] = $constant_traverser->traverse($stmt_set[$file]);
         }
 
-        die($message."\n");
-    }
-
-//    print_r($stmts);
-//    exit;
-
-    $stmts = $traverser->traverse($stmts);
-
-    foreach ($include_collector->getFoundIncludes() as $f) {
-        if (!array_search($f, $files)) {
-            $files[] = $f;
+        foreach ($include_collector->getFoundIncludes() as $f) {
+            if (!array_search($f, $files)) {
+                $files[] = $f;
+            }
         }
     }
 }
