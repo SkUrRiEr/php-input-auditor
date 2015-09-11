@@ -3,6 +3,29 @@
 
 Marks every usage of any variable or parameter as either being "safe" or "unsafe" and after exhaustively searching through a codebase and all accessible libraries used.
 
-All method or function calls that have "unsafe" parameters are reported unless they're on the whitelist.
+It works by propagating the following codes through the codebase by matching code to the rules in the .php files in the rules directory.
 
-$_GET, $_REQUEST and $_POST are initially marked as "unsafe", this marking is then propagated to all parameters and variables that use items from them.
+Codes:
+ * UNSAFE - A variable which has not been sanitised in any way (e.g. `$_REQUEST["data"]`)
+   * FAIL - An UNSAFE variable has been used in a risky manner (e.g. `mysql_query($_REQUEST["query"])`)
+   * UNSAFE_AUDIT - Behaves like UNSAFE, logged like AUDIT
+ * SAFE - A variable which is not user modifyable in any meaningful manner (e.g. `md5($_REQUEST["value"])`)
+   * AUDIT - A UNSAFE variable which has been sanitized (e.g. `mysql_real_escape_string($_REQUEST["data"])`)
+
+FAIL, UNSAFE_AUDIT and AUDIT are equivalent to UNSAFE, UNSAFE and SAFE respectively, however any usage of their results is logged appropriately.
+
+Codes are ranked as follows for simplification:
+1. FAIL
+2. UNSAFE_AUDIT
+3. UNSAFE
+4. AUDIT
+5. SAFE
+However if a simplifcation rule merges UNSAFE and AUDIT, the result is at least UNSAFE_AUDIT.
+
+These are propagated based on the rules in the rules directory and the following simplification rules:
+
+function(FAIL, UNSAFE, AUDIT, SAFE) => function(FAIL)
+ * The maximum of the codes present in the arguments is assumed to be all the arguments
+
+UNSAFE.SAFE => UNSAFE
+ * Any binary operator is equivalent to the maximum of the codes present in it's arguments
