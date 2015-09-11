@@ -65,12 +65,12 @@ while (count($stmt_set) < count($files) ||
             try {
                 $stmts = $parser->parse($code);
             } catch (PhpParser\Error $e) {
-                if ($attributes["with-column-info"] && $e->hasColumnInfo()) {
+                if ($e->hasColumnInfo()) {
                     $startLine = $e->getStartLine();
                     $endLine = $e->getEndLine();
                     $startColumn = $e->getStartColumn($code);
                     $endColumn   = $e->getEndColumn($code);
-                    $message .= $e->getRawMessage()." from ".$startLine.":".$startColumn." to ".$endLine.":".$endColumn;
+                    $message = $e->getRawMessage()." from ".$startLine.":".$startColumn." to ".$endLine.":".$endColumn;
                 } else {
                     $message = $e->getMessage();
                 }
