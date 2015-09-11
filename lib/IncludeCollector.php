@@ -70,8 +70,14 @@ class IncludeCollector extends NodeVisitorAbstract
 
     private function processInclude($file)
     {
-        if (substr($file, 0, 1) == "/" || file_exists($file)) {
+        if (substr($file, 0, 1) == "/") {
             $this->found_includes[] = $file;
+
+            return;
+        }
+
+        if (file_exists($file)) {
+            $this->found_includes[] = getcwd()."/".$file;
 
             return;
         }

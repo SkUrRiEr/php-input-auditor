@@ -12,13 +12,13 @@ ini_set("xdebug.var_display_max_children", -1);
 ini_set("xdebug.var_display_max_data", -1);
 ini_set("xdebug.var_display_max_depth", -1);
 
-$d = dir(".");
+$d = dir(getcwd());
 
 $files = array();
 
 while ($item = $d->read()) {
     if (preg_match("/\.php$/", $item)) {
-        $files[] = $item;
+        $files[] = getcwd()."/".$item;
     }
 }
 
