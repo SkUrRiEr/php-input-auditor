@@ -48,7 +48,7 @@ $constant_traverser->addVisitor($include_collector);
 
 $stmt_set = array();
 
-while (count($stmt_set) == 0 ||
+while (count($stmt_set) < count($files) ||
     ($constant_resolver->hasResolvedConstant() && $constant_resolver->foundMissingConstant())) {
     $constant_resolver->clearFlags();
 
