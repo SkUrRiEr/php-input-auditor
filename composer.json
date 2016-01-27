@@ -1,0 +1,19 @@
+{
+  "name": "SkUrRiEr/php-input-auditor",
+  "description": "A basic PHP security auditor",
+  "require": {
+	  "nikic/php-parser": "1.4.1"
+  },
+  "license": "GPL-2.0",
+  "authors": [
+    {
+      "name": "Julian Calaby",
+      "email": "julian.calaby@gmail.com"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "PhpInputAudit\\": "lib/"
+    }
+  }
+}

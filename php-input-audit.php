@@ -1,9 +1,7 @@
 #!/usr/bin/php5
 <?php
 
-require("PhpParser/bootstrap.php");
-require("lib/ConstantResolver.php");
-require("lib/IncludeCollector.php");
+require __DIR__ . '/vendor/autoload.php';
 
 ini_set("xdebug.max_nesting_level", 3000);
 
